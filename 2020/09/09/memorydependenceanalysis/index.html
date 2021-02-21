@@ -409,7 +409,7 @@
         <div class="card-content article-card-content">
             <div id="articleContent">
                 <p>排版练习中</p>
-<pre><code>int a = 2;
+<pre><code class="C++">int a = 2;
 int b = a * 2;
 int c = a + b + 1;</code></pre>
 <p>简单描述，上述三行代码，a,b,c之间是有依赖关系的，b需要a的值，c需要b的值更新，这就是依赖，由于指令需要提高并发度，所以其实是必须等 a st(store)到一个register中，然后b才能调用这个register，后续一样，c必须等b st；这是最简单的例子。最近在分析一个bug中，不是以IR级别而是BB（basic blocks)级别；到目前为止，需要调整它的alignment还是删除掉这条ld（load），我尚无结论。</p>
@@ -624,6 +624,43 @@ int c = a + b + 1;</code></pre>
 </div>
 
 
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Blog-zzh<br />'
+            + '文章作者: Moonk AZ<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
 
 <!-- 代码块功能依赖 -->
 <script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
@@ -634,8 +671,6 @@ int c = a + b + 1;</code></pre>
 
 
 <!-- 代码块复制 -->
-
-<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
 
 
 <!-- 代码块收缩 -->
@@ -789,7 +824,7 @@ code[class*="language-"], pre[class*="language-"] { white-space: pre !important;
         <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
                    server="netease"
                    type="playlist"
-                   id="503838841"
+                   id="283462322"
                    fixed='true'
                    autoplay='false'
                    theme='#42b983'
