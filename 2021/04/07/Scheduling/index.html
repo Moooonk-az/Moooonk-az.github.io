@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="1012, Blog-zzh">
+    <meta name="keywords" content="Scheduling, Blog-zzh">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>1012 | Blog-zzh</title>
+    <title>Scheduling | Blog-zzh</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -245,12 +245,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/16.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/4.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">1012</h1>
+                    <h1 class="description center-align post-title">Scheduling</h1>
                 </div>
             </div>
         </div>
@@ -367,8 +367,8 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/diary/">
-                                <span class="chip bg-color">diary</span>
+                            <a href="/tags/Schedule/">
+                                <span class="chip bg-color">Schedule</span>
                             </a>
                         
                     </div>
@@ -379,8 +379,8 @@
                     <div class="post-cate">
                         <i class="fas fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/Diary/" class="post-category">
-                                Diary
+                            <a href="/categories/compiler/" class="post-category">
+                                compiler
                             </a>
                         
                     </div>
@@ -392,7 +392,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2020-10-12
+                    2021-04-07
                 </div>
                 
 
@@ -408,10 +408,66 @@
         <hr class="clearfix">
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h6 id="国庆真的很开心"><a href="#国庆真的很开心" class="headerlink" title="国庆真的很开心"></a>国庆真的很开心</h6><p>国庆陪伴了家人，见面了老友，明确了未来，我十分开心；</p>
-<p>后续补一波照片与视频；</p>
-<p>最近暂时的解决了convergent的问题，我会写一篇总结；</p>
-<p>最近有个extension的开发任务，更新先欠着；</p>
+                <h1 id="Scheduling"><a href="#Scheduling" class="headerlink" title="Scheduling"></a>Scheduling</h1><p>LLVM IR  -&gt; selectionDAG生成DAG</p>
+<p>这个DAG的信息还十分缺少，我们会对他进行pre-scheduling</p>
+<p>然后变成MachineInstr 在这个过程中会进行 Scheduling  </p>
+<p>之后会进行 RA，RA之后会进行post-Scheduling</p>
+<p>这里记载一下 machineInstr的Scheduling；</p>
+<p>关于scheduling在计算机组成原理里应该有了解过：</p>
+<h6 id="指令流水线"><a href="#指令流水线" class="headerlink" title="指令流水线"></a>指令流水线</h6><p>————》</p>
+<p>​    ————》</p>
+<p>​        ————》</p>
+<p><img src="C:\Users\A\AppData\Roaming\Typora\typora-user-images\image-20210407213521038.png" alt="image-20210407213521038"></p>
+<p>指令流水会出现三种问题：</p>
+<p>数据依赖（读写依赖，写读依赖，写写依赖）</p>
+<p>？？依赖（不记得名字了，可以举例：比如加法器不够用，你却连着来两条mul，这谁顶得住。）</p>
+<p>branch依赖？（跳转影响？）</p>
+<p>有了流水线的概念，就是我们要怎么安排让指令流水线起作用，达到加速；</p>
+<h6 id="拿出例子"><a href="#拿出例子" class="headerlink" title="拿出例子"></a>拿出例子</h6><p>给出指令格式： opcode  dst    op0 op1 op2</p>
+<p>给出指令cycle数：</p>
+<p>load  4 cycle</p>
+<p>add   2 cycle</p>
+<p>mul  3  cycle</p>
+<p>store 4 cycle</p>
+<p>来一段简单指令：</p>
+<p>load R1 C0                4</p>
+<p>load R2 C1                4</p>
+<p>add R3 R1 R2            2</p>
+<p>load R4 C2                4</p>
+<p>mul R5 R3 R4            3</p>
+<p>load R6 C3                4</p>
+<p>mul R7 R5 R6            3</p>
+<p>load R8 C4                4</p>
+<p>mul R9 R7 R8            3</p>
+<p>store R10 R9            4</p>
+<p>（好家伙，好像是让我把latency拉满了吗？）</p>
+<h6 id="演示一下"><a href="#演示一下" class="headerlink" title="演示一下"></a>演示一下</h6><p>latency-first  and  bottom-up</p>
+<p>将IR 转成DAG</p>
+<p>从底部开始，latency-first</p>
+<p>第一条：</p>
+<p>store</p>
+<p>第二条：</p>
+<p>mul</p>
+<p>第三条：注意这个地方有两个predecessor：  mul 和 load</p>
+<p>我们是latency-first  mul 3  &lt;   load 4</p>
+<p>所以我们选择</p>
+<p>mul</p>
+<p>第四条：</p>
+<p>mul用了3 ，load的latency更新为 4-3 = 1</p>
+<p>这次比较 mul 3 load 4 load 1</p>
+<p>选择load 1</p>
+<p>所以这里我们的指令是</p>
+<p>load</p>
+<p>。。。</p>
+<p>一直到结束，便是这样一边up一边更新latency，一边选择指令。</p>
+<p><strong>需要注意的是latency-first的意思是首先判断latency，当latency一样的时候参考其他数据，比如当前寄存器压力，路径深度等等。</strong></p>
+<p>（随便写写，反正我懂了)</p>
+<p><img src="C:\Users\A\AppData\Roaming\Typora\typora-user-images\image-20210407214756564.png" alt="image-20210407214756564"></p>
+<p>后注：</p>
+<p>RA之后，寄存器是有限的，还记得bigEUsize吗？EU越大，总寄存器就越多，可并发warp就越多，thread并发度就越高。</p>
+<p>thread并发度和Instruction并发度是需要做出取舍的，可以取中庸，也可以取两边极致，看硬件配置是大核小核，register file大小等</p>
+<p>举个例子，现在是simd64，1个thread需要用到40个register，那么一个warp就需要40 * 64个register，每个EU，总的寄存器数量是有限的，warp的并发数就会下来。</p>
+<p>这时候会有疑问了，啊这？为什么EU的大小不能达到warp并发的极致呢？也就是warp上限 乘以  每个thread寄存器上限 乘以 simdmode，好问题。据我所见，HW的hardware没能做到这一点，我也不知道是技术限制还是设计所为，我更倾向于前者，可惜我已经离职，我会在下家问下硬件团队这个问题。</p>
 
             </div>
             <hr/>
@@ -437,7 +493,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2020/10/12/1012/">http://example.com/2020/10/12/1012/</a>
+                    <a href="http://example.com/2021/04/07/Scheduling/">http://example.com/2021/04/07/Scheduling/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -475,8 +531,8 @@
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/diary/">
-                                    <span class="chip bg-color">diary</span>
+                                <a href="/tags/Schedule/">
+                                    <span class="chip bg-color">Schedule</span>
                                 </a>
                             
                         </div>
@@ -518,17 +574,18 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
-                <a href="/2020/10/22/1022/">
+                <a href="/2021/04/07/Scheduling/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/23.jpg" class="responsive-img" alt="1022">
+                        <img src="/medias/featureimages/4.jpg" class="responsive-img" alt="Scheduling">
                         
-                        <span class="card-title">1022</span>
+                        <span class="card-title">Scheduling</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -538,9 +595,59 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2020-10-22
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-04-07
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/compiler/" class="post-category">
+                                    compiler
+                                </a>
+                            
+                            
                         </span>
+                    </div>
+                </div>
+
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Schedule/">
+                        <span class="chip bg-color">Schedule</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2021/03/01/0301/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/19.jpg" class="responsive-img" alt="193">
+                        
+                        <span class="card-title">193</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-03-01
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -558,55 +665,6 @@
                     
                     <a href="/tags/diary/">
                         <span class="chip bg-color">diary</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/2020/09/23/GVN/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="/medias/featureimages/7.jpg" class="responsive-img" alt="GVN">
-                        
-                        <span class="card-title">GVN</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2020-09-23
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/LLVM/" class="post-category">
-                                    LLVM
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/dependency/">
-                        <span class="chip bg-color">dependency</span>
                     </a>
                     
                 </div>
